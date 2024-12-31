@@ -1,0 +1,147 @@
+ Here is the improved project structure with the specified files and directories:
+
+```
+project_root/
+├── main.py
+├── gui/
+│   ├── __init__.py
+│   ├── burner_calculator.py
+│   └── styles.py
+├── calculations/
+│   ├── __init__.py
+│   ├── central_jet.py
+│   ├── hencken_pilot.py
+│   ├── co_flow.py
+│   └── mixed_average_temp.py
+├── parameters/
+│   ├── __init__.py
+│   ├── geometry_params.py
+│   └── operating_params.py
+├── geometry/
+│   ├── __init__.py
+│   └── hex_burner.py
+└── assets/
+    └── logo.png
+```
+
+### `main.py`
+```python
+from gui.burner_calculator import BurnerCalculator
+
+def main():
+    app = BurnerCalculator()
+    app.run()
+
+if __name__ == "__main__":
+    main()
+```
+
+### `gui/__init__.py`
+```python
+# Initialization code for the GUI package
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Initializing GUI package")
+```
+
+### `gui/burner_calculator.py`
+```python
+class BurnerCalculator:
+    def __init__(self):
+        # Initialize the GUI components
+        pass
+
+    def run(self):
+        # Run the GUI application
+        pass
+```
+
+### `gui/styles.py`
+```python
+# Define styles for the GUI components
+```
+
+### `calculations/__init__.py`
+```python
+# Initialization code for the calculations package
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Initializing calculations package")
+```
+
+### `parameters/__init__.py`
+```python
+# Initialization code for the parameters package
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Initializing parameters package")
+```
+
+### `geometry/__init__.py`
+```python
+# Initialization code for the geometry package
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Initializing geometry package")
+```
+
+### `geometry/hex_burner.py`
+```python
+from OCC.Core.gp import gp_Pnt
+from shapely.geometry import Polygon
+import numpy as np
+from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_MakePolygon
+from OCC.Core.STEPControl import STEPControl_Writer, STEPControl_AsIs
+from OCC.Core.IFSelect import IFSelect_RetDone
+from OCC.Display.SimpleGui import init_display
+
+def create_hexagon(center_x, center_y, radius):
+    """Create a hexagon centered at (center_x, center_y) with a given radius."""
+    angle = np.linspace(0, 2 * np.pi, 7)[:-1]  # 6 points + closing point
+    x_hex = center_x + radius * np.cos(angle)
+    y_hex = center_y + radius * np.sin(angle)
+    hexagon = Polygon(zip(x_hex, y_hex))
+    return hexagon
+
+def export_hexagon_to_step(hexagon, filename):
+    """Export a Shapely hexagon to a STEP file."""
+    # Create a polygon in OCC
+    polygon = BRepBuilderAPI_MakePolygon()
+    for x, y in hexagon.exterior.coords:
+        polygon.Add(gp_Pnt(x, y, 0))
+    polygon.Close()
+
+    # Initialize the STEP writer
+    step_writer = STEPControl_Writer()
+    step_writer.Transfer(polygon.Shape(), STEPControl_AsIs)
+
+    # Write the shape to a STEP file
+    status = step_writer.Write(filename)
+    if status == IFSelect_RetDone:
+        print(f"STEP file successfully written to {filename}.")
+    else:
+        print("Error writing STEP file.")
+
+def display_hexagon_3d(hexagon):
+    """Display a Shapely hexagon in an interactive 3D window using pythonOCC."""
+    # Create a polygon in OCC
+    polygon = BRepBuilderAPI_MakePolygon()
+    for x, y in hexagon.exterior.coords:
+        polygon.Add(gp_Pnt(x, y, 0))
+    polygon.Close()
+
+    # Initialize the display
+    display, start_display, add_menu, add_function_to_menu = init_display()
+    display.DisplayShape(polygon.Shape(), update=True)
+    start_display()
+```
+
+This structure organizes your project into logical modules, making it easier to maintain and extend.
