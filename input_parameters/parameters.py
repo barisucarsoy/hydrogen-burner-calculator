@@ -66,8 +66,7 @@ class OperatingParams:
     -All temperatures are in Kelvin.
     -All pressures are in Pascal.
     -All velocities are in m/s.
-
-"""
+    """
 
     # Central jet conditions
     jet_equivalence_ratio: float = 0.4
