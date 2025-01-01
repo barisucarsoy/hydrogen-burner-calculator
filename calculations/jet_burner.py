@@ -45,6 +45,9 @@ class JetBurnerProperties:
     # Geometric properties
     flow_area: float
 
+    def print_properties(self):
+        for field in self.__dataclass_fields__:
+            print(f"{field}: {getattr(self, field)}")
 
 class JetBurner:
     def __init__(self, geometry, operating):
