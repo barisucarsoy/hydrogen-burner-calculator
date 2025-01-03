@@ -154,7 +154,7 @@ class PilotBurner:
         # Get flame properties
         flame_density = flame.density
         flame_temperature = flame.T
-        flame_enthalpy_mass = flame.h
+        flame_enthalpy_mass = flame.enthalpy_mass
         flame_enthalpy_mole = flame.enthalpy_mole
 
         LHV_H2 = 120.1e6  # Lower heating value of H2 [J/kg]

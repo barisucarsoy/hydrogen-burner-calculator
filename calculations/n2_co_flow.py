@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import cantera as ct
 
+
 @dataclass
 class CoFlowResults:
     """Results container for N2 co-flow calculations"""
@@ -78,7 +79,7 @@ class CoFlow:
         Re = self.inlet_velocity * (self.coflow_OD - self.coflow_ID) * N2.density / N2.viscosity
 
         # Calculate enthalpy
-        enthalpy = N2.h
+        enthalpy = N2.enthalpy_mass
 
         # Calculate dynamic viscosity
         dynamic_viscosity = N2.viscosity
@@ -92,3 +93,8 @@ class CoFlow:
             density=N2.density,
             dynamic_viscosity=dynamic_viscosity
         )
+
+    def get_co_flow_properties(self):
+        """Get N2 co-flow results"""
+        flow_results = self.calculate_flows()
+        return flow_results
