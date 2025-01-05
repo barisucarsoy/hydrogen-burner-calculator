@@ -4,7 +4,6 @@ from tkinter import PhotoImage
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
-from geometry.honeycomb_generator import HexGrid
 from gui.styles import setup_styles
 from gui.gui_inputs import InputFields
 from gui.gui_outputs import OutputTiles
@@ -15,7 +14,9 @@ from calculations import pilot_burner as pb
 from calculations import n2_co_flow as cf
 from calculations import mixed_temperature as mt
 
-from geometry.plate_generator import get_hole_coordinates, plate_generator
+from geometry.plate_generator import get_hole_coordinates as plate_coordinates, plate_generator
+from geometry.honeycomb_generator import get_hole_coordinates as honeycomb_coordinates, HexGrid
+
 
 
 class UserInterface:
@@ -42,16 +43,21 @@ class UserInterface:
         self.inputs = InputFields(input_frame)
         self.outputs = OutputTiles(dashboard_frame)
 
-        ttk.Button(input_frame, text="Calculate", command=self.calculate).grid(row=2, column=0, columnspan=2, sticky="ew", pady=5)
+        ttk.Button(input_frame, text="Calculate", command=self.calculate).grid(row=2, column=0, columnspan=2,
+                                                                               sticky="ew", pady=5)
 
         # Add "Generate DXF file" checkbox
         self.generate_dxf_var = tk.BooleanVar()
-        ttk.Checkbutton(input_frame, text="Generate a DXF file", variable=self.generate_dxf_var).grid(row=3, column=0, columnspan=2, sticky="w", pady=5)
+        ttk.Checkbutton(input_frame, text="Generate a DXF file", variable=self.generate_dxf_var).grid(row=3, column=0,
+                                                                                                      columnspan=2,
+                                                                                                      sticky="w",
+                                                                                                      pady=5)
 
         # Add plate config dropdown
         ttk.Label(input_frame, text="Burner Config:").grid(row=4, column=0, sticky="w", pady=5)
         self.plate_config_var = tk.StringVar()
-        self.plate_config_dropdown = ttk.Combobox(input_frame, textvariable=self.plate_config_var, values=["Plate", "Honeycomb"])
+        self.plate_config_dropdown = ttk.Combobox(input_frame, textvariable=self.plate_config_var,
+                                                  values=["Plate", "Honeycomb"])
         self.plate_config_dropdown.grid(row=4, column=1, sticky="ew", pady=5)
 
     def calculate(self):
@@ -111,17 +117,12 @@ class UserInterface:
         except Exception as e:
             messagebox.showerror("Calculation Error", str(e))
 
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-    from geometry.honeycomb_generator import HexGrid
-    from geometry.plate_generator import get_hole_coordinates
-
     def plot_geometry(self, geom, geometry_config):
         fig, ax = plt.subplots()
 
         if geometry_config == "Plate":
             # Get hole coordinates for plate
-            air_holes, fuel_holes, central_jet = get_hole_coordinates()
+            air_holes, fuel_holes, central_jet = plate_coordinates()
 
             # Plot air holes
             for circle in air_holes:
@@ -143,7 +144,7 @@ class UserInterface:
             # Generate the hexagonal grid
             hex_grid = HexGrid(geom)
             burner_boundary = hex_grid.generate_burner_boundary()
-            air_holes, fuel_holes, central_jet = get_hole_coordinates()
+            air_holes, fuel_holes, central_jet = honeycomb_coordinates()
 
             # Plot burner boundary
             x, y = burner_boundary.exterior.xy
@@ -151,13 +152,8 @@ class UserInterface:
 
             # Plot air holes
             for hexagon in air_holes:
-                intersection = hexagon.intersection(burner_boundary)
-                if not intersection.equals(hexagon):
-                    x, y = intersection.exterior.xy
-                    ax.plot(x, y, color='red')
-                else:
-                    x, y = hexagon.exterior.xy
-                    ax.plot(x, y, color='blue')
+                x, y = hexagon.exterior.xy
+                ax.plot(x, y, color='blue')
 
             # Plot fuel holes
             for fuel_hole in fuel_holes:
@@ -171,11 +167,11 @@ class UserInterface:
                 ax.plot(x, y, color='orange', linestyle='dashed')
 
             # Plot central jet
-            x, y = central_jet.exterior.xy
+            x, y = central_jet['circle'].exterior.xy
             ax.plot(x, y, color='green')
 
             # Plot central jet OD
-            x, y = central_jet.buffer(geom.pilot_fuel_OD).exterior.xy
+            x, y = central_jet['od_circle'].exterior.xy
             ax.plot(x, y, color='purple', linestyle='dashed')
 
             ax.set_title('Hexagonal Grid Geometry')
@@ -191,6 +187,8 @@ class UserInterface:
         canvas = FigureCanvasTkAgg(fig, master=self.outputs.burner_geometry_display)
         canvas.draw()
         canvas.get_tk_widget().pack(fill='both', expand=True)
+
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = UserInterface(root)
