@@ -52,7 +52,7 @@ class GeometryParams:
 
     # Pilot hex grid
     pilot_hex_cell_size: float = pilot_air_ID   # Hex inner circle diameter
-    pilot_hex_wall_th:   float = 0.13e-3        # Hex mesh thickness
+    pilot_hex_wall_th:   float = 0.1e-3        # Hex mesh thickness
 
     # Co-flow geometry
     coflow_ID: float = pilot_burner_OD   # Based on Pilot
