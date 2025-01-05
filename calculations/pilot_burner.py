@@ -137,11 +137,11 @@ class PilotBurner:
         # Initialize Cantera objects
         gas = ct.Solution('gri30.yaml')
         # Calculate stoichiometric fuel-to-air ratio
-        gas.set_equivalence_ratio(1.0, 'H2', 'O2:1.0, N2:3.76')
-        stoich_ratio = gas.stoich_air_fuel_ratio('H2', 'O2:1.0, N2:3.76', basis='mass')
+        #gas.set_equivalence_ratio(1.0, 'H2', 'O2:1.0, N2:3.76')
+        stoich_ratio = gas.stoich_air_fuel_ratio('H2:1.0', 'O2:1.0, N2:3.76', basis='mole')
 
         # Calculate equivalence ratio
-        phi = (mass_flow_h2 / mass_flow_air) / stoich_ratio
+        phi = stoich_ratio / (mass_flow_air / mass_flow_h2)
 
         # Set up flame mixture with calculated equivalence ratio
         flame = ct.Solution('gri30.yaml')

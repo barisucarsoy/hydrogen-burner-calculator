@@ -1,4 +1,3 @@
-import plotly.graph_objs as go
 from input_parameters.parameters import GeometryParams
 from geometry.grid_generator import HexagonalGridGenerator
 import shapely.geometry
@@ -131,7 +130,8 @@ def plate_generator(generate_dxf=False):
 
     # Check fuel positions
     fuel_positions_cubic = hex_grid.check_fuel_positions()
-    fuel_positions_cartesian = [cubic_to_cartesian(q, r, s, hex_grid.center_distance / math.sqrt(3)) for q, r, s in fuel_positions_cubic]
+    fuel_positions_cartesian = [cubic_to_cartesian(q, r, s, hex_grid.center_distance / math.sqrt(3)) for q, r, s in
+                                fuel_positions_cubic]
 
     # Generate fuel holes
     fuel_holes = hex_grid.generate_fuel_holes(fuel_positions_cartesian)
@@ -144,7 +144,7 @@ def plate_generator(generate_dxf=False):
 
     # Optionally export geometry to DXF
     if generate_dxf:
-        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'utils')
 
         filename = os.path.join(data_dir, f'geometry_{datetime.now().strftime("%Y%m%d_%H%M%S")}.dxf')
         hex_grid.export_to_dxf(air_holes, fuel_holes, central_jet, filename)
@@ -152,6 +152,30 @@ def plate_generator(generate_dxf=False):
     # Calculate hole statistics
     stats = hex_grid.calculate_hole_statistics(air_holes, fuel_holes)
     return stats
+
+
+def get_hole_coordinates():
+    # Initialize geometry parameters
+    params = GeometryParams()
+
+    # Initialize hex grid
+    hex_grid = HexGrid(params)
+
+    # Check fuel positions
+    fuel_positions_cubic = hex_grid.check_fuel_positions()
+    fuel_positions_cartesian = [cubic_to_cartesian(q, r, s, hex_grid.center_distance / math.sqrt(3)) for q, r, s in
+                                fuel_positions_cubic]
+
+    # Generate fuel holes
+    fuel_holes = hex_grid.generate_fuel_holes(fuel_positions_cartesian)
+
+    # Generate central jet
+    central_jet = hex_grid.generate_central_jet()
+
+    # Generate air holes, ensuring no overlap with fuel holes
+    air_holes = hex_grid.generate_air_holes(fuel_holes, central_jet)
+
+    return air_holes, fuel_holes, central_jet
 
 
 if __name__ == '__main__':
@@ -162,4 +186,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     stats = plate_generator(generate_dxf=args.generate_dxf)
+
     print(stats)

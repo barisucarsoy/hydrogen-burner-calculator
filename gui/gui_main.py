@@ -1,6 +1,8 @@
-# gui/gui_main.py
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkinter import PhotoImage
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 
 from gui.styles import setup_styles
 from gui.gui_inputs import InputFields
@@ -12,13 +14,20 @@ from calculations import pilot_burner as pb
 from calculations import n2_co_flow as cf
 from calculations import mixed_temperature as mt
 
+from geometry.plate_generator import get_hole_coordinates, plate_generator
+
+
 class UserInterface:
     def __init__(self, root):
         self.root = root
         self.root.title('Hydrogen Burner Toolbox')
         setup_styles()
-        self.root.geometry("1200x900")
-        self.root.minsize(1200, 900)
+        self.root.geometry("1300x1000")
+        self.root.minsize(1200, 1000)
+
+        # Load the logo image
+        self.logo = PhotoImage(file="logo.png")
+        self.root.iconphoto(False, self.logo)  # Set the application icon
 
         input_frame = ttk.Frame(root, padding="5")
         input_frame.grid(row=0, column=0, sticky="nsw", padx=5, pady=5)
@@ -34,11 +43,21 @@ class UserInterface:
 
         ttk.Button(input_frame, text="Calculate", command=self.calculate).grid(row=2, column=0, columnspan=2, sticky="ew", pady=5)
 
+        # Add "Generate DXF file" checkbox
+        self.generate_dxf_var = tk.BooleanVar()
+        ttk.Checkbutton(input_frame, text="Generate a DXF file", variable=self.generate_dxf_var).grid(row=3, column=0, columnspan=2, sticky="w", pady=5)
+
+        # Add plate config dropdown
+        ttk.Label(input_frame, text="Burner Config:").grid(row=4, column=0, sticky="w", pady=5)
+        self.plate_config_var = tk.StringVar()
+        self.plate_config_dropdown = ttk.Combobox(input_frame, textvariable=self.plate_config_var, values=["Plate", "Honeycomb Mesh", "x"])
+        self.plate_config_dropdown.grid(row=4, column=1, sticky="ew", pady=5)
+
     def calculate(self):
         self.outputs.clear_tile(self.outputs.flow_tile)
         self.outputs.clear_tile(self.outputs.thermal_tile)
         self.outputs.clear_tile(self.outputs.performance_tile)
-        self.outputs.clear_tile(self.outputs.mixing_tile)
+        self.outputs.clear_tile(self.outputs.burner_geometry_display)
 
         try:
             geom = GeometryParams(
@@ -79,8 +98,48 @@ class UserInterface:
 
             self.outputs.update_tiles(jet_props, pilot_results, coflow_results, mix_results)
 
+            # Plot the geometry in the burner geometry display
+            self.plot_geometry(geom)
+
+            # Generate DXF file if the checkbox is ticked
+            if self.generate_dxf_var.get():
+                plate_generator(generate_dxf=True)
+
         except Exception as e:
             messagebox.showerror("Calculation Error", str(e))
+
+    def plot_geometry(self, geom):
+        fig, ax = plt.subplots()
+
+        # Get hole coordinates
+        air_holes, fuel_holes, central_jet = get_hole_coordinates()
+
+        # Plot air holes
+        for circle in air_holes:
+            x, y = circle.exterior.xy
+            ax.plot(x, y, color='blue')
+
+        # Plot fuel holes
+        for circle in fuel_holes:
+            x, y = circle.exterior.xy
+            ax.plot(x, y, color='red')
+
+        # Plot central jet
+        x, y = central_jet.exterior.xy
+        ax.plot(x, y, color='green')
+
+        ax.set_title('Plate Generator Grid')
+        ax.set_xlabel('X-axis (mm)')
+        ax.set_ylabel('Y-axis (mm)')
+        ax.set_aspect('equal', 'box')  # Set 1:1 axis ratio
+
+        # Set tick labels to show values in millimeters
+        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val * 1000:.0f}'))
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val * 1000:.0f}'))
+
+        canvas = FigureCanvasTkAgg(fig, master=self.outputs.burner_geometry_display)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)
 
 if __name__ == "__main__":
     root = tk.Tk()
