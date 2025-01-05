@@ -41,10 +41,10 @@ class MixedTemperature:
         self.pilot = pb(geometry, operating)
         self.coflow = cf(geometry, operating)
 
-    def calculate_mixed_temperature(self):
+    def calculate_mixed_temperature(self, geometry_config):
         """Calculate mixed temperature and enthalpy"""
         jet_results = self.jet.get_jet_burner_properties()
-        pilot_results = self.pilot.get_pilot_burner_properties()
+        pilot_results = self.pilot.get_pilot_burner_properties(geometry_config)
         coflow_results = self.coflow.calculate_flows()
 
         # Get mass flows
@@ -87,10 +87,6 @@ class MixedTemperature:
             species_mass_fracs=None,
             mixed_velocity=None
         )
-
-    def get_mixed_properties(self):
-        """Get mixed properties"""
-        return self.calculate_mixed_temperature()
 
 
 if __name__ == '__main__':

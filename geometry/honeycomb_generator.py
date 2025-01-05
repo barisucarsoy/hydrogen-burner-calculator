@@ -150,7 +150,7 @@ class HexGrid:
         }
 
 
-def plate_generator(generate_dxf=False):
+def honeycomb_generator(generate_dxf=False):
     params = GeometryParams()
     hex_grid = HexGrid(params)
 
@@ -192,6 +192,6 @@ if __name__ == '__main__':
     parser.add_argument('--generate-dxf', action='store_true', help='Generate DXF file')
     args = parser.parse_args()
 
-    stats = plate_generator(generate_dxf=args.generate_dxf)
+    stats = honeycomb_generator(generate_dxf=args.generate_dxf)
 
     print(stats)

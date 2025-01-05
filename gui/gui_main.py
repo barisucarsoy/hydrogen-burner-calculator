@@ -4,6 +4,7 @@ from tkinter import PhotoImage
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
+from geometry.honeycomb_generator import HexGrid
 from gui.styles import setup_styles
 from gui.gui_inputs import InputFields
 from gui.gui_outputs import OutputTiles
@@ -50,7 +51,7 @@ class UserInterface:
         # Add plate config dropdown
         ttk.Label(input_frame, text="Burner Config:").grid(row=4, column=0, sticky="w", pady=5)
         self.plate_config_var = tk.StringVar()
-        self.plate_config_dropdown = ttk.Combobox(input_frame, textvariable=self.plate_config_var, values=["Plate", "Honeycomb Mesh", "x"])
+        self.plate_config_dropdown = ttk.Combobox(input_frame, textvariable=self.plate_config_var, values=["Plate", "Honeycomb"])
         self.plate_config_dropdown.grid(row=4, column=1, sticky="ew", pady=5)
 
     def calculate(self):
@@ -85,21 +86,23 @@ class UserInterface:
                 coflow_velocity=float(self.inputs.entries["coflow_velocity"].get())
             )
 
+            geometry_config = self.plate_config_var.get()
+
             jet = jb.JetBurner(geom, op)
             pilot = pb.PilotBurner(geom, op)
             coflow = cf.CoFlow(geom, op)
 
             jet_props = jet.get_jet_burner_properties()
-            pilot_results = pilot.get_pilot_burner_properties()
+            pilot_results = pilot.get_pilot_burner_properties(geometry_config)
             coflow_results = coflow.get_co_flow_properties()
 
             mixer = mt.MixedTemperature(geom, op)
-            mix_results = mixer.calculate_mixed_temperature()
+            mix_results = mixer.calculate_mixed_temperature(geometry_config)
 
             self.outputs.update_tiles(jet_props, pilot_results, coflow_results, mix_results)
 
             # Plot the geometry in the burner geometry display
-            self.plot_geometry(geom)
+            self.plot_geometry(geom, geometry_config)
 
             # Generate DXF file if the checkbox is ticked
             if self.generate_dxf_var.get():
@@ -108,27 +111,75 @@ class UserInterface:
         except Exception as e:
             messagebox.showerror("Calculation Error", str(e))
 
-    def plot_geometry(self, geom):
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    from geometry.honeycomb_generator import HexGrid
+    from geometry.plate_generator import get_hole_coordinates
+
+    def plot_geometry(self, geom, geometry_config):
         fig, ax = plt.subplots()
 
-        # Get hole coordinates
-        air_holes, fuel_holes, central_jet = get_hole_coordinates()
+        if geometry_config == "Plate":
+            # Get hole coordinates for plate
+            air_holes, fuel_holes, central_jet = get_hole_coordinates()
 
-        # Plot air holes
-        for circle in air_holes:
-            x, y = circle.exterior.xy
-            ax.plot(x, y, color='blue')
+            # Plot air holes
+            for circle in air_holes:
+                x, y = circle.exterior.xy
+                ax.plot(x, y, color='blue')
 
-        # Plot fuel holes
-        for circle in fuel_holes:
-            x, y = circle.exterior.xy
-            ax.plot(x, y, color='red')
+            # Plot fuel holes
+            for circle in fuel_holes:
+                x, y = circle.exterior.xy
+                ax.plot(x, y, color='red')
 
-        # Plot central jet
-        x, y = central_jet.exterior.xy
-        ax.plot(x, y, color='green')
+            # Plot central jet
+            x, y = central_jet.exterior.xy
+            ax.plot(x, y, color='green')
 
-        ax.set_title('Plate Generator Grid')
+            ax.set_title('Plate Generator Grid')
+
+        elif geometry_config == "Honeycomb":
+            # Generate the hexagonal grid
+            hex_grid = HexGrid(geom)
+            burner_boundary = hex_grid.generate_burner_boundary()
+            air_holes, fuel_holes, central_jet = get_hole_coordinates()
+
+            # Plot burner boundary
+            x, y = burner_boundary.exterior.xy
+            ax.plot(x, y, color='black', linestyle='dotted')
+
+            # Plot air holes
+            for hexagon in air_holes:
+                intersection = hexagon.intersection(burner_boundary)
+                if not intersection.equals(hexagon):
+                    x, y = intersection.exterior.xy
+                    ax.plot(x, y, color='red')
+                else:
+                    x, y = hexagon.exterior.xy
+                    ax.plot(x, y, color='blue')
+
+            # Plot fuel holes
+            for fuel_hole in fuel_holes:
+                circle = fuel_hole['circle']
+                x, y = circle.exterior.xy
+                ax.plot(x, y, color='red')
+
+                # Plot pilot fuel OD
+                od_circle = fuel_hole['od_circle']
+                x, y = od_circle.exterior.xy
+                ax.plot(x, y, color='orange', linestyle='dashed')
+
+            # Plot central jet
+            x, y = central_jet.exterior.xy
+            ax.plot(x, y, color='green')
+
+            # Plot central jet OD
+            x, y = central_jet.buffer(geom.pilot_fuel_OD).exterior.xy
+            ax.plot(x, y, color='purple', linestyle='dashed')
+
+            ax.set_title('Hexagonal Grid Geometry')
+
         ax.set_xlabel('X-axis (mm)')
         ax.set_ylabel('Y-axis (mm)')
         ax.set_aspect('equal', 'box')  # Set 1:1 axis ratio
@@ -140,7 +191,6 @@ class UserInterface:
         canvas = FigureCanvasTkAgg(fig, master=self.outputs.burner_geometry_display)
         canvas.draw()
         canvas.get_tk_widget().pack(fill='both', expand=True)
-
 if __name__ == "__main__":
     root = tk.Tk()
     app = UserInterface(root)

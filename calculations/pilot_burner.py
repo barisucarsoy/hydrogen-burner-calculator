@@ -2,6 +2,7 @@ import cantera as ct
 import numpy as np
 from dataclasses import dataclass
 from geometry.plate_generator import plate_generator
+from geometry.honeycomb_generator import honeycomb_generator
 
 
 @dataclass
@@ -69,14 +70,6 @@ class PilotBurner:
         self.pilot_temperature = operating.pilot_temperature
         self.pilot_air_velocity = operating.pilot_air_velocity
         self.pilot_fuel_velocity = operating.pilot_fuel_velocity
-
-        stats = plate_generator(generate_dxf=False)
-
-        self.air_hole_number = stats['air_hole_number']
-        self.air_hole_area = stats['air_hole_area']
-        self.fuel_hole_number = stats['fuel_hole_number']
-        self.fuel_hole_area = stats['fuel_hole_area']
-        self.air_to_fuel_area_ratio = stats['air_to_fuel_area_ratio']
 
     def calculate_mass_flows(self):
         """Calculate mass flows of the pilot burner"""
@@ -170,7 +163,20 @@ class PilotBurner:
             'equivalence_ratio': phi
         }
 
-    def get_pilot_burner_properties(self):
+    def get_pilot_burner_properties(self, geometry_config):
+        if geometry_config == 'Honeycomb':
+            stats = honeycomb_generator(generate_dxf=False)
+            print("Honeycomb Generator Output:", stats)
+        elif geometry_config == 'Plate':
+            stats = plate_generator(generate_dxf=False)
+            print("Plate Generator Output:", stats)
+
+        self.air_hole_number = stats['air_hole_number']
+        self.air_hole_area = stats['air_hole_area']
+        self.fuel_hole_number = stats['fuel_hole_number']
+        self.fuel_hole_area = stats['fuel_hole_area']
+        self.air_to_fuel_area_ratio = stats['air_to_fuel_area_ratio']
+
         flows = self.calculate_mass_flows()
         flame_properties = self.calculate_flame_properties(mass_flow_h2=flows['mass_flow_h2'],
                                                            mass_flow_air=flows['mass_flow_air'])
