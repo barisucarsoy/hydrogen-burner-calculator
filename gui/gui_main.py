@@ -28,8 +28,8 @@ class UserInterface:
         self.root.minsize(1200, 1000)
 
         # Load the logo image
-        #self.logo = PhotoImage(file="/gui/logo.png")
-        #self.root.iconphoto(False, self.logo)  # Set the application icon
+        self.logo = PhotoImage(file="../assests/logo.png")
+        self.root.iconphoto(False, self.logo)  # Set the application icon
 
         input_frame = ttk.Frame(root, padding="5")
         input_frame.grid(row=0, column=0, sticky="nsw", padx=5, pady=5)

@@ -1,4 +1,4 @@
-![logo](gui/logo.png)
+![logo](assests/logo.png)
 
 Hydrogen - Air Burner Calculator
 
