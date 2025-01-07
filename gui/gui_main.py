@@ -28,7 +28,7 @@ class UserInterface:
         self.root.minsize(1200, 1000)
 
         # Load the logo image
-        self.logo = PhotoImage(file="../assests/logo.png")
+        self.logo = PhotoImage(file="/assests/logo.png")
         self.root.iconphoto(False, self.logo)  # Set the application icon
 
         input_frame = ttk.Frame(root, padding="5")
