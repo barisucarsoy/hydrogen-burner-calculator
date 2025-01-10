@@ -18,7 +18,6 @@ from geometry.plate_generator import get_hole_coordinates as plate_coordinates, 
 from geometry.honeycomb_generator import get_hole_coordinates as honeycomb_coordinates, HexGrid
 
 
-
 class UserInterface:
     def __init__(self, root):
         self.root = root
@@ -28,7 +27,7 @@ class UserInterface:
         self.root.minsize(1200, 1000)
 
         # Load the logo image
-        self.logo = PhotoImage(file="/assests/logo.png")
+        self.logo = PhotoImage(file="../assets/logo.png")
         self.root.iconphoto(False, self.logo)  # Set the application icon
 
         input_frame = ttk.Frame(root, padding="5")
