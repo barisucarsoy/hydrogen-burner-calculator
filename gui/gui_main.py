@@ -23,7 +23,7 @@ class UserInterface:
         self.root = root
         self.root.title('Hydrogen Burner Toolbox')
         setup_styles()
-        self.root.geometry("1300x1000")
+        self.root.geometry("1200x1200")
         self.root.minsize(1200, 1000)
 
         # Load the logo image

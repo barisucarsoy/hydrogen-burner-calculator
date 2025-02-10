@@ -57,17 +57,17 @@ class OutputTiles:
 
         std_volume_flow_frame = ttk.Frame(self.flow_tile)
         std_volume_flow_frame.pack(fill='x', expand=True, pady=5)
-        ttk.Label(std_volume_flow_frame, text="Standard Volume Flows", style='TileHeader.TLabel').pack()
+        ttk.Label(std_volume_flow_frame, text="Normal Volume Flows at 1 atm, 0 degC", style='TileHeader.TLabel').pack()
         self.flow_labels['Jet Fuel Volume Flow'] = self.add_label(self.flow_tile,
-                                                                  f"Jet Fuel Volume Flow: {jet_props.vol_flow_std_h2 * m3s_to_lpm:.2f} SLPM")
+                                                                  f"Jet Fuel Volume Flow: {jet_props.vol_flow_std_h2 * m3s_to_lpm:.2f} nLPM, {jet_props.vol_flow_std_h2 * 3600:.3f} m³/h")
         self.flow_labels['Jet Air Volume Flow'] = self.add_label(self.flow_tile,
-                                                                 f"Jet Air Volume Flow: {jet_props.vol_flow_std_air * m3s_to_lpm:.2f} SLPM")
+                                                                 f"Jet Air Volume Flow: {jet_props.vol_flow_std_air * m3s_to_lpm:.2f} nLPM, {jet_props.vol_flow_std_air * 3600:.3f} m³/h")
         self.flow_labels['Pilot Fuel Volume Flow'] = self.add_label(self.flow_tile,
-                                                                    f"Pilot Fuel Volume Flow: {pilot_results.vol_flow_std_h2 * m3s_to_lpm:.2f} SLPM")
+                                                                    f"Pilot Fuel Volume Flow: {pilot_results.vol_flow_std_h2 * m3s_to_lpm:.2f} nLPM, {pilot_results.vol_flow_std_h2 * 3600:.3f} m³/h")
         self.flow_labels['Pilot Air Volume Flow'] = self.add_label(self.flow_tile,
-                                                                   f"Pilot Air Volume Flow: {pilot_results.vol_flow_std_air * m3s_to_lpm:.2f} SLPM")
+                                                                   f"Pilot Air Volume Flow: {pilot_results.vol_flow_std_air * m3s_to_lpm:.2f} nLPM, {pilot_results.vol_flow_std_air * 3600:.3f} m³/h")
         self.flow_labels['Co-Flow Volume Flow'] = self.add_label(self.flow_tile,
-                                                                 f"Co-Flow Volume Flow: {coflow_results.std_volume_flow * m3s_to_lpm:.2f} SLPM")
+                                                                 f"Co-Flow Volume Flow: {coflow_results.std_volume_flow * m3s_to_lpm:.2f} nLPM, {coflow_results.std_volume_flow * 3600:.3f} m³/h")
 
     def update_thermal_tile(self, jet_props, pilot_results, coflow_results, mix_results):
         thermal_frame = ttk.Frame(self.thermal_tile)
