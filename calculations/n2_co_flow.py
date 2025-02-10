@@ -70,7 +70,7 @@ class CoFlow:
 
         # Standard conditions (1 atm, 273.15 K)
         N2_std = ct.Solution('gri30.yaml')
-        N2_std.TPX = 273.15 + 15, ct.one_atm, 'N2:1.0'
+        N2_std.TPX = 273.15 + 0, ct.one_atm, 'N2:1.0'
 
         # Standard volume flow
         std_volume_flow = mass_flow / N2_std.density

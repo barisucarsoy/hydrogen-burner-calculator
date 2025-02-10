@@ -28,6 +28,9 @@ class PilotBurnerProperties:
     # Real densities at operating conditions
     rho_h2: float
     rho_air: float
+    rho_mix: float
+
+    mixed_velocity: float
 
     # Relevant dimensionless numbers of the mixture
     reynolds_number_h2: float
@@ -71,6 +74,13 @@ class PilotBurner:
         self.pilot_air_velocity = operating.pilot_air_velocity
         self.pilot_fuel_velocity = operating.pilot_fuel_velocity
 
+        self.hencken_OD = geometry.pilot_burner_ID
+        self.hencken_ID = geometry.jet_OD
+
+        # Area of the mixed pilot
+        self.hencken_area = (np.pi * (self.hencken_OD / 2) ** 2) - (np.pi * (self.hencken_ID / 2) ** 2)
+
+
     def calculate_mass_flows(self):
         """Calculate mass flows of the pilot burner"""
         # Initialize gas phases
@@ -92,10 +102,10 @@ class PilotBurner:
 
         # Standard conditions (1 atm, 273.15 K)
         air_std = ct.Solution('gri30.yaml')
-        air_std.TPX = 273.15 + 15, ct.one_atm, 'O2:0.21, N2:0.79'
+        air_std.TPX = 273.15 + 0, ct.one_atm, 'O2:0.21, N2:0.79'
 
         h2_std = ct.Solution('gri30.yaml')
-        h2_std.TPX = 273.15 + 15, ct.one_atm, 'H2:1.0'
+        h2_std.TPX = 273.15 + 0, ct.one_atm, 'H2:1.0'
 
         # Standard volume flows
         vol_flow_std_air = mass_flow_air / air_std.density
@@ -105,6 +115,18 @@ class PilotBurner:
         # Dimensionless numbers
         reynolds_h2 = self.pilot_fuel_velocity * self.pilot_fuel_ID * h2.density / h2.viscosity
         reynolds_air = self.pilot_air_velocity * self.air_hole_area * air.density / air.viscosity
+
+        # Mixed flow properties
+        gas_mix = ct.Solution('gri30.yaml')
+        gas_mix.TPX = self.pilot_temperature, self.pilot_pressure, 'H2:1.0, O2:1.0, N2:3.76'
+        stoich_ratio = gas_mix.stoich_air_fuel_ratio('H2:1.0', 'O2:1.0, N2:3.76', basis='mass')
+        phi = stoich_ratio / (mass_flow_air / mass_flow_h2)
+        gas_mix.set_equivalence_ratio(phi, 'H2', 'O2:1.0, N2:3.76')
+
+        rho_mix = gas_mix.density_mass
+        mixed_velocity = mass_flow_total / self.hencken_area / rho_mix
+
+
 
         return {
             'flow_area_air': self.air_hole_area,
@@ -122,6 +144,8 @@ class PilotBurner:
             'vol_flow_std_air': vol_flow_std_air,
             'reynolds_number_h2': reynolds_h2,
             'reynolds_number_air': reynolds_air,
+            'mixed_velocity': mixed_velocity,
+            'rho_mix': rho_mix
         }
 
     def calculate_flame_properties(self, mass_flow_h2, mass_flow_air):
@@ -131,7 +155,7 @@ class PilotBurner:
         gas = ct.Solution('gri30.yaml')
         # Calculate stoichiometric fuel-to-air ratio
         #gas.set_equivalence_ratio(1.0, 'H2', 'O2:1.0, N2:3.76')
-        stoich_ratio = gas.stoich_air_fuel_ratio('H2:1.0', 'O2:1.0, N2:3.76', basis='mole')
+        stoich_ratio = gas.stoich_air_fuel_ratio('H2:1.0', 'O2:1.0, N2:3.76', basis='mass')
 
         # Calculate equivalence ratio
         phi = stoich_ratio / (mass_flow_air / mass_flow_h2)

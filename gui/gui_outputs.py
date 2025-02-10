@@ -107,6 +107,12 @@ class OutputTiles:
                                                                    f"Pilot Air Reynolds Number: {pilot_results.reynolds_number_air:.2f}")
         self.flow_labels['Co-Flow Reynolds Number'] = self.add_label(self.performance_tile,
                                                                      f"Co-Flow Reynolds Number: {coflow_results.Re:.2f}")
+        self.flow_labels['Pilot Mixed Flow Velocity'] = self.add_label(self.performance_tile,
+                                                                       f"Mixed Flow Velocity: {pilot_results.mixed_velocity:.2f} m/s")
+        self.flow_labels['Pilot Mixed Flow Density'] = self.add_label(self.performance_tile,
+                                                                 f"Pilot Mixed Flow Density: {pilot_results.rho_mix:.2f} kg/m³")
+        self.flow_labels['Pilot air density'] = self.add_label(self.performance_tile,
+                                                                f"Pilot Air Density: {pilot_results.rho_air:.2f} kg/m³")
 
     def clear_tile(self, tile):
         for widget in tile.winfo_children():

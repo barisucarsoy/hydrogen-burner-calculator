@@ -109,11 +109,11 @@ class JetBurner:
 
         # Calculate Standard volumetric flows at 15°C and 1 atm
         gas_std_air = ct.Solution('gri30.yaml')
-        gas_std_air.TPX = 273.15 + 15, ct.one_atm, 'O2:0.21, N2:0.79'
+        gas_std_air.TPX = 273.15 + 0, ct.one_atm, 'O2:0.21, N2:0.79'
         std_density_air = gas_std_air.density_mass
 
         gas_std_h2 = ct.Solution('gri30.yaml')
-        gas_std_h2.TPX = 273.15 + 15, ct.one_atm, 'H2:1.0'
+        gas_std_h2.TPX = 273.15 + 0, ct.one_atm, 'H2:1.0'
         std_density_h2 = gas_std_h2.density_mass
 
         vol_flow_std_h2 = mass_flow_h2 / std_density_h2
